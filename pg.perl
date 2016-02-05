@@ -121,13 +121,52 @@ close (WORDS);
 
 print STDERR "\nDone.\n";
 
+sub rot_reverse_static {
+    my $str = shift;
+    print "before: ".$str."\n";
+    if ($caesar) {
+        $str =~ tr/a-z/$caesar_string/;
+    }
+    print "after: ".$str."\n";
+    return reverse($str);
+}
+
+
+# Compile a version of rot_reverse that is tailored to this value of caesar
+# The theory is that this will be faster, but it's probably the root of all evil.
+my $sub_string;
+if ($caesar) {
+    my $caesar_string = chr(ord('a')+$caesar)."-za-".chr(ord('z')+$caesar-26);
+    $sub_string = <<EOF
+sub rot_reverse {
+    my \$str = shift;
+    \$str =~ tr/a-zA-Z/$caesar_string/;
+    return reverse(\$str);
+}
+EOF
+;
+    eval($sub_string);
+} else {
+$sub_string = <<EOF
+sub rot_reverse {
+    my \$str = shift;
+    return reverse(\$str);
+}
+EOF
+;
+
+}
+eval($sub_string);
+
+
+
 my $num_prints;
 for ($num_prints == 0;;$num_prints = 0) {
     main($leftinit, $rightinit);
 }
 
 #################################################################################
-# Calculate the "quotient" of two strings L and reverse(R)                      #
+# Calculate the "quotient" of two strings L and rot_reverse(R)                  #
 # e.g. differ(a b c d, b a) = c d                                               #
 # returns the quotient, and the side of the remainder as a list ($q, $side)     #
 # ("left" or "right" or "error")                                                #
@@ -139,7 +178,7 @@ sub differ {
     $strL =~ s/\s//g;
     $strR =~ s/\s//g;
     my $minL = length($strL) < length($strR) ?  length($strL) : length($strR) ;
-    $strR = reverse ($strR);
+    $strR = rot_reverse ($strR);
 
     if (substr ($strL, 0, $minL) ne substr ($strR, 0, $minL)) {
 	return (-1, "error");
@@ -163,7 +202,7 @@ sub dprint {
 sub isPalindrome {
     my $str1 = shift;
     $str1 =~ s/\s//g;
-    return ($str1 eq reverse ($str1));
+    return ($str1 eq rot_reverse($str1));
 }
 
 ##############################################################################
@@ -186,7 +225,7 @@ sub addPreSuff {
 # To generate a palindrome, we recursively call main         #
 # with two arguments $l and $r (the left and right parts     #
 # of the current palindrome.  We then do the following:      #
-# if the overhang from comparing $l and $r (in reverse) is a #
+# if the overhang from comparing $l and $r (in rot_reverse) is a #
 # palindrome, then $l $r is a palindrome and is printed;     #
 # otherwise a matching word is chosen and added to $l or $r  #
 # and main($l,$r) is called recursively.  When choosing a    #
@@ -231,7 +270,7 @@ sub main {
     if ($D eq "") {
 	@H = @allwords;
     } elsif ($side eq "left") {
-	my $Dinv = reverse($D);
+	my $Dinv = rot_reverse($D);
 	for (my $i = 1; $i <= length($Dinv); $i++) {
 	    my $suff = substr ($Dinv, length($Dinv) - $i, $i);
 	    if (defined $allwordshash{$suff}) {
