@@ -42,9 +42,10 @@ my $debugging = 0; my $length1; my $length2; my $length3; my $length4; my $lengt
 my $start_over_limit = 20;
 my $allow_repetitions = 0;
 my $leftinit = ""; my $rightinit = ""; my $freqsort = 0;
+my $caesar = 0;
 my %opts;
 
-getopts("dm:l:r:f1:2:3:4:R:s:",\%opts);
+getopts("dm:l:r:f1:2:3:4:R:s:c:",\%opts);
 
 if (defined($opts{d})) { $debugging = 1;               } # Print debug info
 if (defined($opts{m})) { $lengthLimit = $opts{m};      } # Sentence length upper limit
@@ -56,6 +57,7 @@ if (defined($opts{2})) { $filename = $opts{2}; $ngramorder = 2;        } #
 if (defined($opts{3})) { $filename = $opts{3}; $ngramorder = 3;        } #
 if (defined($opts{4})) { $filename = $opts{4}; $ngramorder = 4;        } #
 if (defined($opts{f})) { $freqsort = 1;                } # Weight sort by frequency (instead of word length)
+if (defined($opts{c})) { $caesar = $opts{c};           } # Perform a caesarian cypher before reversing
 if (defined($opts{R})) {
     if ($opts{R} eq "*") {
 	$allow_repetitions = 1;
@@ -79,6 +81,7 @@ sub usage() {
 open (WORDS, $filename) or usage();
 
 print STDERR "Reading $ngramorder-grams from $filename\n";
+print STDERR "Shifting by $caesar when reversing.\n";
 
 my $i = 0;
 while (<WORDS>) {
