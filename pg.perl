@@ -1,34 +1,34 @@
 #!/usr/bin/perl
 
-#############################################################################################
-#                                                                                           #
-#  Palindrome generator                                                                     #
-#                                                                                           #
-#  Usage: pg.perl [options]                                                                 #
-#                                                                                           #
-#         OPTIONS:                                                                          #
-#                                                                                           #
-#         -d             print debug info                                                   #
-#         -m limit       max. length of sentences to generate (def 50)                      #
-#         -s limit       max. number of sentences to generate for each recursion (def 20)   #
-#         -l "string"    force palindrome to start with "string"                            #
-#         -r "string"    force palindrome to end with "string"                              #
-#         -1 file        read 1-grams from file                                             #
-#         -2 file        read 2-grams from file                                             #
-#         -3 file        read 3-grams from file                                             #
-#         -4 file        read 4-grams from file                                             #
-#         -f             when generating randomly, prefer high-frequency sequences/words    #
-#                        as opposed to long words (the default behavior)                    #
-#         -R "wordlist"  allow repetion of the words given, e.g. -R "the a an of in and"    #
-#                        -R "*" allows repetition of any words                              #
-#                                                                                           #
-# Authors: Mans Hulden                                                                      #
-#          Manex Agirrezabal                                                                #
-#          2013/02/28                                                                       #
-#                                                                                           #
-# License: GPL v2                                                                           #
-#                                                                                           #
-#############################################################################################
+###############################################################################################
+##                                                                                           ##
+##  Palindrome generator                                                                     ##
+##                                                                                           ##
+##  Usage: pg.perl [options]                                                                 ##
+##                                                                                           ##
+##         OPTIONS:                                                                          ##
+##                                                                                           ##
+##         -d             print debug info                                                   ##
+##         -m limit       max. length of sentences to generate (def 50)                      ##
+##         -s limit       max. number of sentences to generate for each recursion (def 20)   ##
+##         -l "string"    force palindrome to start with "string"                            ##
+##         -r "string"    force palindrome to end with "string"                              ##
+##         -1 file        read 1-grams from file                                             ##
+##         -2 file        read 2-grams from file                                             ##
+##         -3 file        read 3-grams from file                                             ##
+##         -4 file        read 4-grams from file                                             ##
+##         -f             when generating randomly, prefer high-frequency sequences/words    ##
+##                        as opposed to long words (the default behavior)                    ##
+##         -R "wordlist"  allow repetion of the words given, e.g. -R "the a an of in and"    ##
+##                        -R "*" allows repetition of any words                              ##
+##                                                                                           ##
+## Authors: Mans Hulden                                                                      ##
+##          Manex Agirrezabal                                                                ##
+##          2013/02/28                                                                       ##
+##                                                                                           ##
+## License: GPL v2                                                                           ##
+##                                                                                           ##
+###############################################################################################
 
 use strict;
 use Getopt::Std;
@@ -56,17 +56,27 @@ if (defined($opts{2})) { $filename = $opts{2}; $ngramorder = 2;        } #
 if (defined($opts{3})) { $filename = $opts{3}; $ngramorder = 3;        } #
 if (defined($opts{4})) { $filename = $opts{4}; $ngramorder = 4;        } #
 if (defined($opts{f})) { $freqsort = 1;                } # Weight sort by frequency (instead of word length)
-if (defined($opts{R})) { 
+if (defined($opts{R})) {
     if ($opts{R} eq "*") {
 	$allow_repetitions = 1;
     } else {
-	@repetition_stoplist = split / +/, $opts{R};    
+	@repetition_stoplist = split / +/, $opts{R};
 	foreach (@repetition_stoplist) { $repetition_hash{$_} = 1; }
     }
 }                                                        # Allow repetition of certain words, e.g. -R "the a an in on"
                                                          # Allow any repetition by saying -R "*"
-
-open (WORDS, $filename) or die("No n-grams/lexicon file found");
+sub usage() {
+    print $0."\n";
+    open(USAGE,$0) or die("weird error.");
+    while (<USAGE>) {
+        if (/^## /) {
+            print $_;
+        }
+    }
+    exit(1);
+    # die("No n-grams/lexicon file found");
+}
+open (WORDS, $filename) or usage();
 
 print STDERR "Reading $ngramorder-grams from $filename\n";
 
@@ -127,7 +137,7 @@ sub differ {
     $strR =~ s/\s//g;
     my $minL = length($strL) < length($strR) ?  length($strL) : length($strR) ;
     $strR = reverse ($strR);
-    
+
     if (substr ($strL, 0, $minL) ne substr ($strR, 0, $minL)) {
 	return (-1, "error");
     } else {
@@ -221,14 +231,14 @@ sub main {
 	my $Dinv = reverse($D);
 	for (my $i = 1; $i <= length($Dinv); $i++) {
 	    my $suff = substr ($Dinv, length($Dinv) - $i, $i);
-	    if (defined $allwordshash{$suff}) {		
+	    if (defined $allwordshash{$suff}) {
 		push @H, $suff;
 	    }
 	}
 	if (defined $suffixes{$Dinv}) {
 	    push @H, @{$suffixes{$Dinv}};
 	}
-    }    
+    }
 
     if ($D ne ""  and $side eq "left") {
 	my $rc = "$r # #";
@@ -248,7 +258,7 @@ sub main {
 	    }
 	    @H = grep { $repetition_hash{$_} == 1 or $seenw{$_} != 1 } @H;
 	}
-	
+
         #############################################################
 	# The following may go down in history as the most          #
 	# unspeakable abuse of the sort function ever witnessed...  #
@@ -259,7 +269,7 @@ sub main {
 
 	# Weighted sort of candidate list H by word frequency:
 	if ($freqsort == 1 and $ngramorder == 3) { @H = sort { rand($allwordshash{$a} + $allwordshash{$b}) <=> $allwordshash{$a} } @H };
-	    
+
 	if ($freqsort == 1 and $ngramorder == 2) { @H = sort { rand($allwordshash{ $a ."/" .(split ' ', $rc)[0] } + $allwordshash{ $b ."/" .(split ' ', $rc)[0] }) <=> $allwordshash{ $a ."/" .(split ' ', $rc)[0] } } @H };
 
 	foreach (@H) {
@@ -269,7 +279,7 @@ sub main {
 	my $Dinv = $D;
 	for (my $i = 1; $i <= length($Dinv); $i++) {
 	    my $pref = substr ($Dinv, 0, $i);
-	    if (defined $allwordshash{$pref}) {		
+	    if (defined $allwordshash{$pref}) {
 		push @H, $pref;
 	    }
 	}
@@ -285,7 +295,7 @@ sub main {
 	# Remove words that would repeat, except those explicitly allowed
 	if ($allow_repetitions == 0) {
 	    my @wll = split / +/, "$l $r";
-	    my %seenw = (); 
+	    my %seenw = ();
 	    foreach (@wll) {
 		$seenw{$_} = 1;
 	    }
@@ -297,7 +307,7 @@ sub main {
 	# Weighted sort of candidate list by word frequency:
 	if ($freqsort == 1 and $ngramorder == 3) { @H = sort { rand($allwordshash{$a} + $allwordshash{$b}) <=> $allwordshash{$a} } @H };
 	if ($freqsort == 1 and $ngramorder == 2) { @H = sort { rand($allwordshash{ substr($lc, rindex($lc, ' ') + 1) ."/" .$a } + $allwordshash{ substr($lc, rindex($lc, ' ') + 1) ."/" .$b }) <=> $allwordshash{ substr($lc, rindex($lc, ' ') + 1) ."/" .$a } } @H };
-	
+
 	foreach (@H) {
 	    main($l ." " .$_, $r);
 	}
@@ -305,3 +315,7 @@ sub main {
 	return;
     }
 }
+
+# Local Variables:
+# tab-width: 8
+# End:
