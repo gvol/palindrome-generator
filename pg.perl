@@ -80,8 +80,8 @@ sub usage() {
 }
 open (WORDS, $filename) or usage();
 
-print STDERR "Reading $ngramorder-grams from $filename\n";
 print STDERR "Shifting by $caesar when reversing.\n";
+print STDERR "Reading $ngramorder-grams from $filename\n";
 
 my $i = 0;
 while (<WORDS>) {
