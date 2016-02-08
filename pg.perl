@@ -21,10 +21,13 @@
 ##                        as opposed to long words (the default behavior)                    ##
 ##         -R "wordlist"  allow repetion of the words given, e.g. -R "the a an of in and"    ##
 ##                        -R "*" allows repetition of any words                              ##
+##         -c number      Key of caesarian cypher (i.e. rotate by number before reversing)   ##
 ##                                                                                           ##
 ## Authors: Mans Hulden                                                                      ##
 ##          Manex Agirrezabal                                                                ##
 ##          2013/02/28                                                                       ##
+##          Ivan Andrus                                                                      ##
+##          2016/01/08                                                                       ##
 ##                                                                                           ##
 ## License: GPL v2                                                                           ##
 ##                                                                                           ##
