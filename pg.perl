@@ -35,6 +35,7 @@
 
 use strict;
 use Getopt::Std;
+use List::MoreUtils qw(uniq);
 
 my %prefixes;
 my %suffixes;
@@ -45,10 +46,10 @@ my $debugging = 0; my $length1; my $length2; my $length3; my $length4; my $lengt
 my $start_over_limit = 20;
 my $allow_repetitions = 0;
 my $leftinit = ""; my $rightinit = ""; my $freqsort = 0;
-my $caesar = 0;
+my $caesar = 0; my $exhaustive = 0;
 my %opts;
 
-getopts("dm:l:r:f1:2:3:4:R:s:c:",\%opts);
+getopts("dm:l:r:f1:2:3:4:R:s:c:x",\%opts);
 
 if (defined($opts{d})) { $debugging = 1;               } # Print debug info
 if (defined($opts{m})) { $lengthLimit = $opts{m};      } # Sentence length upper limit
@@ -61,6 +62,7 @@ if (defined($opts{3})) { $filename = $opts{3}; $ngramorder = 3;        } #
 if (defined($opts{4})) { $filename = $opts{4}; $ngramorder = 4;        } #
 if (defined($opts{f})) { $freqsort = 1;                } # Weight sort by frequency (instead of word length)
 if (defined($opts{c})) { $caesar = $opts{c};           } # Perform a caesarian cypher before reversing
+if (defined($opts{x})) { $exhaustive = 1; $start_over_limit = -1;      } # Perform an exhaustive search (most useful with -c)
 if (defined($opts{R})) {
     if ($opts{R} eq "*") {
 	$allow_repetitions = 1;
@@ -161,11 +163,15 @@ EOF
 }
 eval($sub_string);
 
-
-
 my $num_prints;
-for ($num_prints == 0;;$num_prints = 0) {
-    main($leftinit, $rightinit);
+if ( $exhaustive ) {
+    foreach (@allwords) {
+        main($_, "");
+    }
+} else {
+    for ($num_prints == 0;;$num_prints = 0) {
+        main($leftinit, $rightinit);
+    }
 }
 
 #################################################################################
@@ -251,7 +257,7 @@ sub main {
     my $r = shift;
     dprint("LEFT:[$l] RIGHT:[$r]\n");
     if (length($r) + length ($l) > $lengthLimit) {
-	dprint("LENGTH LIMIT $lengthLimit REACHED\n");;
+	dprint("LENGTH LIMIT $lengthLimit REACHED\n");
 	return;
     }
     if ($l eq "" and $r eq "") {
@@ -264,8 +270,18 @@ sub main {
     dprint("D: [$D] side:[$side]\n");
 
     if (isPalindrome($D)) {
+	# Print "$l * $r" if that can form a palindrome.
+	# That way we can find composable palindromes.
 	$num_prints++;
-	print "$l $r\n";
+	if ( $D eq "" ) {
+	    print "$l * $r\n";
+	    if ( $exhaustive ) {
+		dprint("Composable palindrome reached with exhaustive, returning...\n");
+		return;
+	    }
+	} else {
+	    print "$l $r\n";
+	}
     }
 
     my @H = ();
@@ -317,6 +333,7 @@ sub main {
 
 	if ($freqsort == 1 and $ngramorder == 2) { @H = sort { rand($allwordshash{ $a ."/" .(split ' ', $rc)[0] } + $allwordshash{ $b ."/" .(split ' ', $rc)[0] }) <=> $allwordshash{ $a ."/" .(split ' ', $rc)[0] } } @H };
 
+	@H = uniq @H;
 	foreach (@H) {
 	    main($l, $_ ." $r");
 	}
@@ -353,6 +370,7 @@ sub main {
 	if ($freqsort == 1 and $ngramorder == 3) { @H = sort { rand($allwordshash{$a} + $allwordshash{$b}) <=> $allwordshash{$a} } @H };
 	if ($freqsort == 1 and $ngramorder == 2) { @H = sort { rand($allwordshash{ substr($lc, rindex($lc, ' ') + 1) ."/" .$a } + $allwordshash{ substr($lc, rindex($lc, ' ') + 1) ."/" .$b }) <=> $allwordshash{ substr($lc, rindex($lc, ' ') + 1) ."/" .$a } } @H };
 
+	@H = uniq @H;
 	foreach (@H) {
 	    main($l ." " .$_, $r);
 	}
@@ -363,4 +381,5 @@ sub main {
 
 # Local Variables:
 # tab-width: 8
+# indent-tabs-mode: t
 # End:
