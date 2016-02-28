@@ -61,7 +61,7 @@ if (defined($opts{2})) { $filename = $opts{2}; $ngramorder = 2;        } #
 if (defined($opts{3})) { $filename = $opts{3}; $ngramorder = 3;        } #
 if (defined($opts{4})) { $filename = $opts{4}; $ngramorder = 4;        } #
 if (defined($opts{f})) { $freqsort = 1;                } # Weight sort by frequency (instead of word length)
-if (defined($opts{c})) { $caesar = $opts{c};           } # Perform a caesarian cypher before reversing
+if (defined($opts{c})) { $caesar = $opts{c} % 26;      } # Perform a caesarian cypher before reversing
 if (defined($opts{x})) { $exhaustive = 1; $start_over_limit = -1;      } # Perform an exhaustive search (most useful with -c)
 if (defined($opts{R})) {
     if ($opts{R} eq "*") {
@@ -143,9 +143,14 @@ my $sub_string;
 if ($caesar) {
     my $caesar_string = chr(ord('a')+$caesar)."-za-".chr(ord('z')+$caesar-26);
     $sub_string = <<EOF
-sub rot_reverse {
+sub unrot_reverse {
     my \$str = shift;
     \$str =~ tr/a-zA-Z/$caesar_string/;
+    return reverse(\$str);
+}
+sub rot_reverse {
+    my \$str = shift;
+    \$str =~ tr/$caesar_string/a-zA-Z/;
     return reverse(\$str);
 }
 EOF
@@ -153,6 +158,10 @@ EOF
     eval($sub_string);
 } else {
 $sub_string = <<EOF
+sub unrot_reverse {
+    my \$str = shift;
+    return reverse(\$str);
+}
 sub rot_reverse {
     my \$str = shift;
     return reverse(\$str);
@@ -289,7 +298,7 @@ sub main {
     if ($D eq "") {
 	@H = @allwords;
     } elsif ($side eq "left") {
-	my $Dinv = rot_reverse($D);
+	my $Dinv = unrot_reverse($D);
 	for (my $i = 1; $i <= length($Dinv); $i++) {
 	    my $suff = substr ($Dinv, length($Dinv) - $i, $i);
 	    if (defined $allwordshash{$suff}) {
