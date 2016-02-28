@@ -62,7 +62,7 @@ if (defined($opts{3})) { $filename = $opts{3}; $ngramorder = 3;        } #
 if (defined($opts{4})) { $filename = $opts{4}; $ngramorder = 4;        } #
 if (defined($opts{f})) { $freqsort = 1;                } # Weight sort by frequency (instead of word length)
 if (defined($opts{c})) { $caesar = $opts{c} % 26;      } # Perform a caesarian cypher before reversing
-if (defined($opts{x})) { $exhaustive = 1; $start_over_limit = -1;      } # Perform an exhaustive search (most useful with -c)
+if (defined($opts{x})) { $exhaustive = 1;              } # Perform an exhaustive search (most useful with -c)
 if (defined($opts{R})) {
     if ($opts{R} eq "*") {
 	$allow_repetitions = 1;
@@ -174,7 +174,9 @@ eval($sub_string);
 
 my $num_prints;
 if ( $exhaustive ) {
-    foreach (@allwords) {
+    my @H = sort { length($b) <=> length($a) } @allwords;
+    foreach (@H) {
+        $num_prints = 0;
         main($_, "");
     }
 } else {
