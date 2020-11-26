@@ -22,6 +22,7 @@
 ##         -R "wordlist"  allow repetion of the words given, e.g. -R "the a an of in and"    ##
 ##                        -R "*" allows repetition of any words                              ##
 ##         -c number      Key of caesarian cypher (i.e. rotate by number before reversing)   ##
+##         -8             Rotate 180°                                                        ##
 ##                                                                                           ##
 ## Authors: Mans Hulden                                                                      ##
 ##          Manex Agirrezabal                                                                ##
@@ -47,9 +48,10 @@ my $start_over_limit = 20;
 my $allow_repetitions = 0;
 my $leftinit = ""; my $rightinit = ""; my $freqsort = 0;
 my $caesar = 0; my $exhaustive = 0;
+my $use_oneeighty;
 my %opts;
 
-getopts("dm:l:r:f1:2:3:4:R:s:c:x",\%opts);
+getopts("dm:l:r:f1:2:3:4:R:s:c:x:8",\%opts);
 
 if (defined($opts{d})) { $debugging = 1;               } # Print debug info
 if (defined($opts{m})) { $lengthLimit = $opts{m};      } # Sentence length upper limit
@@ -63,6 +65,7 @@ if (defined($opts{4})) { $filename = $opts{4}; $ngramorder = 4;        } #
 if (defined($opts{f})) { $freqsort = 1;                } # Weight sort by frequency (instead of word length)
 if (defined($opts{c})) { $caesar = $opts{c} % 26;      } # Perform a caesarian cypher before reversing
 if (defined($opts{x})) { $exhaustive = 1;              } # Perform an exhaustive search (most useful with -c)
+if (defined($opts{8})) { $use_oneeighty = 1;           } # Perform a 180° rotation before reversing
 if (defined($opts{R})) {
     if ($opts{R} eq "*") {
 	$allow_repetitions = 1;
@@ -151,6 +154,25 @@ sub unrot_reverse {
 sub rot_reverse {
     my \$str = shift;
     \$str =~ tr/$caesar_string/a-zA-Z/;
+    return reverse(\$str);
+}
+EOF
+;
+    eval($sub_string);
+} elsif ($use_oneeighty) {
+
+    my $alphabet  = "abcdefghijklmnopqrstuvwxyz";
+    my $oneeighty = "eq_pa__hi__lwuodb_stn_mx_z";
+
+    $sub_string = <<EOF
+sub unrot_reverse {
+    my \$str = shift;
+    \$str =~ tr/$alphabet/$oneeighty/;
+    return reverse(\$str);
+}
+sub rot_reverse {
+    my \$str = shift;
+    \$str =~ tr/$alphabet/$oneeighty/;
     return reverse(\$str);
 }
 EOF
