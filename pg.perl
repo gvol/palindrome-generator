@@ -51,7 +51,7 @@ my $caesar = 0; my $exhaustive = 0;
 my $use_oneeighty;
 my %opts;
 
-getopts("dm:l:r:f1:2:3:4:R:s:c:x:8",\%opts);
+getopts("dm:l:r:f1:2:3:4:R:s:c:x8",\%opts);
 
 if (defined($opts{d})) { $debugging = 1;               } # Print debug info
 if (defined($opts{m})) { $lengthLimit = $opts{m};      } # Sentence length upper limit
