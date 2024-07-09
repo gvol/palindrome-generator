@@ -96,4 +96,12 @@ Peter Norvig expanded on Hoey's work in his article World's Longest Palindrome S
 
     pg.perl -l "a man a plan a canal" -r "panama" -s 100000 -m 100000 -1 wordlist.txt
 
-MH20130228
+## Non-traditional Palindromes
+
+There is also some limited support for non-traditional palindromes like ROT13 palindromes, namely phrases for which reversing and ROT13 are equivalent (ignoring non-letter characters as in regular palindromes).  Because of how ROT13 turns vowels into consonants, there are many fewer of these than regular palindromes.  Although the primary interest is ROT13 palindromes, any caesarian shift is supported via the `-c NUMBER` option.
+
+The `-8` option supports rotating 180°.  This is not necessarily well-defined, depending on how creatively you are willing write the characters.  In fact, there is a whole bunch of pretty cool ambigram art that this will *not* reproduce.  I merely used the most straightforward mapping I could think of.  Because of that, there are some letters with no corresponding rotated letter.  Of course, words with those letters then become off limits.
+
+It should be fairly straighforward to support other bijections, but I couldn't really think of any other interesting ones to try.
+
+Because there are fewer of these types of palindromes, choosing randomly might repeat a lot, so the `-x` option will check exhaustively and exit when it has finished (would take a *very* long time when checking for regular palindromes of any length).
